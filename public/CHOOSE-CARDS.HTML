@@ -1,0 +1,828 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Choose Your Bingo Cards - Addis Bingo</title>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="/css/choose-cards.css">
+    
+    <!-- Telegram Web App SDK -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    
+    <style>
+        /* Mobile optimizations */
+        @media (max-width: 480px) {
+            .card-number {
+                width: 45px;
+                height: 45px;
+                font-size: 14px;
+            }
+            
+            .selected-card-display {
+                padding: 15px;
+            }
+            
+            .selection-timer {
+                font-size: 0.9rem;
+            }
+        }
+        
+        /* Prevent text selection */
+        .no-select {
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+        
+        /* Loading overlay */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(15, 32, 39, 0.95);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        .loading-overlay.active {
+            opacity: 1;
+        }
+        
+        .loading-spinner {
+            width: 60px;
+            height: 60px;
+            border: 5px solid rgba(76, 201, 240, 0.3);
+            border-radius: 50%;
+            border-top-color: #4cc9f0;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+        
+        .loading-text {
+            font-size: 1.2rem;
+            color: #4cc9f0;
+            font-weight: bold;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="no-select choose-cards-page">
+    <!-- Loading overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-spinner"></div>
+        <div class="loading-text" id="loadingText">Loading card selection...</div>
+    </div>
+    
+    <!-- Main container -->
+    <div class="choose-cards-container" id="mainContainer">
+        <!-- Header section -->
+        <div class="cards-header">
+            <div class="header-left">
+                <div class="player-info">
+                    <div class="player-avatar" id="playerAvatar">P</div>
+                    <div>
+                        <h3 id="playerName">Player</h3>
+                        <p class="player-id">ID: <span id="playerId">0000</span></p>
+                    </div>
+                </div>
+                
+                <div class="game-info">
+                    <div class="info-item">
+                        <i class="fas fa-gamepad"></i>
+                        <span>Entry: <strong id="entryPrice">10</strong> ETB</span>
+                    </div>
+                    <div class="info-item">
+                        <i class="fas fa-trophy"></i>
+                        <span>Prize: <strong id="prizePool">20</strong> ETB</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="selection-timer">
+                <div class="timer-label">
+                    <i class="fas fa-hourglass-half"></i>
+                    SELECTION TIME LEFT
+                </div>
+                <div class="timer-display" id="selectionTimer">01:00</div>
+            </div>
+        </div>
+        
+        <!-- Selection progress -->
+        <div class="selection-progress">
+            <div class="progress-item">
+                <div class="progress-value" id="cardsSelected">0</div>
+                <div class="progress-label">Cards Selected</div>
+                <div class="progress-bar-container">
+                    <div class="progress-bar" id="selectionProgress"></div>
+                </div>
+            </div>
+            
+            <div class="progress-item">
+                <div class="progress-value" id="availableCards">500</div>
+                <div class="progress-label">Available Cards</div>
+            </div>
+            
+            <div class="progress-item">
+                <div class="progress-value" id="activePlayers">1</div>
+                <div class="progress-label">Players in Game</div>
+            </div>
+        </div>
+        
+        <!-- Cards grid section -->
+        <div class="cards-grid-section">
+            <div class="section-header">
+                <h2>
+                    <i class="fas fa-th-large"></i>
+                    CHOOSE YOUR BINGO CARDS (1-500)
+                </h2>
+                <div class="search-box">
+                    <input type="number" id="cardSearch" placeholder="Jump to card #" min="1" max="500">
+                    <button id="btnSearchCard"><i class="fas fa-search"></i></button>
+                </div>
+            </div>
+            
+            <div class="pagination-controls">
+                <button class="page-btn" id="btnPrevPage" disabled>
+                    <i class="fas fa-chevron-left"></i> Previous
+                </button>
+                <span class="page-info" id="pageInfo">Page 1 of 5</span>
+                <button class="page-btn" id="btnNextPage">
+                    Next <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+            
+            <div class="cards-grid" id="cardsGrid">
+                <!-- Cards will be generated by JavaScript -->
+            </div>
+        </div>
+        
+        <!-- Selected cards display -->
+        <div class="selected-cards-section">
+            <h2>
+                <i class="fas fa-check-circle"></i>
+                YOUR SELECTED CARDS
+                <span class="selection-limit">(Max 2 cards)</span>
+            </h2>
+            
+            <div class="selected-cards-container">
+                <div class="selected-card-display" id="card1Display">
+                    <div class="card-header">
+                        <h3><i class="fas fa-dice-one"></i> CARD #1</h3>
+                        <div class="card-number-display" id="card1Number">--</div>
+                    </div>
+                    <div class="card-preview" id="card1Preview">
+                        <!-- Card preview will be generated -->
+                    </div>
+                    <div class="card-actions">
+                        <button class="btn-view-card" data-card="1">
+                            <i class="fas fa-expand"></i> View Full
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="selected-card-display" id="card2Display">
+                    <div class="card-header">
+                        <h3><i class="fas fa-dice-two"></i> CARD #2</h3>
+                        <div class="card-number-display" id="card2Number">--</div>
+                    </div>
+                    <div class="card-preview" id="card2Preview">
+                        <!-- Card preview will be generated -->
+                    </div>
+                    <div class="card-actions">
+                        <button class="btn-view-card" data-card="2">
+                            <i class="fas fa-expand"></i> View Full
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Controls section -->
+        <div class="controls-section">
+            <button class="control-btn btn-random" id="randomSelectBtn">
+                <i class="fas fa-random"></i>
+                RANDOM SELECTION
+            </button>
+            
+            <button class="control-btn btn-clear" id="clearSelectionBtn">
+                <i class="fas fa-trash-alt"></i>
+                CLEAR SELECTION
+            </button>
+            
+            <button class="control-btn btn-confirm" id="confirmSelectionBtn">
+                <i class="fas fa-check-circle"></i>
+                CONFIRM SELECTION
+            </button>
+        </div>
+        
+        <!-- Instructions -->
+        <div class="instructions-section">
+            <div class="instructions-toggle">
+                <h3>
+                    <i class="fas fa-lightbulb"></i>
+                    SELECTION INSTRUCTIONS
+                    <i class="fas fa-chevron-down" id="instructionsToggle"></i>
+                </h3>
+            </div>
+            
+            <div class="instructions-content" id="instructionsContent">
+                <ul>
+                    <li><strong>You can select up to 2 bingo cards</strong> - Each card costs the game entry price</li>
+                    <li><strong>Each card has unique numbers</strong> from 1-500 - No two cards are identical</li>
+                    <li><strong>Gray cards</strong> are already taken by other players</li>
+                    <li><strong>Green cards</strong> are available for selection</li>
+                    <li><strong>Blue cards</strong> are your current selection</li>
+                    <li><strong>Selection time is limited</strong> - Game starts automatically when timer reaches 0</li>
+                    <li><strong>If no cards selected</strong> when timer expires, random cards will be chosen for you</li>
+                    <li><strong>You can change your selection</strong> anytime before confirming</li>
+                    <li><strong>Once confirmed</strong>, your selection cannot be changed</li>
+                </ul>
+                
+                <div class="warning-note">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <strong>IMPORTANT:</strong> Ensure you have sufficient balance for the game entry fee
+                </div>
+            </div>
+        </div>
+        
+        <!-- Card preview modal -->
+        <div class="modal-overlay" id="cardModal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>BINGO CARD <span id="modalCardNumber">#0</span></h3>
+                    <button class="btn-close-modal" id="btnCloseModal">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="full-card-display" id="fullCardDisplay"></div>
+                    <div class="card-stats">
+                        <div class="stat">
+                            <div class="stat-value" id="modalCardType">FIXED</div>
+                            <div class="stat-label">Card Type</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-value">25</div>
+                            <div class="stat-label">Total Numbers</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-value">1</div>
+                            <div class="stat-label">FREE Space</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn-select-modal" id="btnSelectModal">
+                        <i class="fas fa-check"></i> Select This Card
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- JavaScript -->
+    <script src="/js/card-selector.js"></script>
+    <script src="/js/bingo-board.js"></script>
+    
+    <script>
+        // Configuration
+        const CONFIG = {
+            gameId: new URLSearchParams(window.location.search).get('gameId') || 'default',
+            entryPrice: parseInt(new URLSearchParams(window.location.search).get('price')) || 10,
+            maxCards: 2,
+            totalCards: 500,
+            cardsPerPage: 100,
+            selectionTime: 60 // seconds
+        };
+        
+        // Game state
+        let gameState = {
+            selectedCards: [],
+            takenCards: [],
+            availableCards: [],
+            selectionTimeLeft: CONFIG.selectionTime,
+            playerName: 'Player',
+            playerId: '0000',
+            activePlayers: 1,
+            isConfirmed: false
+        };
+        
+        // DOM elements
+        let selectionTimerInterval;
+        let cardSelector;
+        
+        // Initialize on DOM load
+        document.addEventListener('DOMContentLoaded', () => {
+            initGame();
+        });
+        
+        async function initGame() {
+            try {
+                // Show loading
+                showLoading('Initializing card selection...');
+                
+                // Initialize Telegram Web App
+                if (window.Telegram?.WebApp) {
+                    const tg = window.Telegram.WebApp;
+                    tg.expand();
+                    tg.enableClosingConfirmation();
+                    
+                    // Get user data from Telegram
+                    if (tg.initDataUnsafe?.user) {
+                        const user = tg.initDataUnsafe.user;
+                        gameState.playerId = user.id.toString();
+                        gameState.playerName = user.first_name || 'Telegram User';
+                        if (user.last_name) {
+                            gameState.playerName += ' ' + user.last_name;
+                        }
+                    }
+                    
+                    // Setup back button
+                    tg.BackButton.show();
+                    tg.BackButton.onClick(() => {
+                        if (confirm('Are you sure you want to leave? Your selection will be lost.')) {
+                            window.history.back();
+                        }
+                    });
+                }
+                
+                // Update UI with player info
+                updatePlayerInfo();
+                
+                // Initialize card selector
+                initCardSelector();
+                
+                // Load taken cards from server (simulated)
+                loadTakenCards();
+                
+                // Start selection timer
+                startSelectionTimer();
+                
+                // Setup event listeners
+                setupEventListeners();
+                
+                // Hide loading
+                setTimeout(() => {
+                    hideLoading();
+                }, 1000);
+                
+            } catch (error) {
+                console.error('Failed to initialize:', error);
+                showLoading('Error loading game. Please refresh.');
+            }
+        }
+        
+        function updatePlayerInfo() {
+            document.getElementById('playerName').textContent = gameState.playerName;
+            document.getElementById('playerId').textContent = gameState.playerId;
+            document.getElementById('playerAvatar').textContent = 
+                gameState.playerName.charAt(0).toUpperCase();
+            document.getElementById('entryPrice').textContent = CONFIG.entryPrice;
+            document.getElementById('prizePool').textContent = CONFIG.entryPrice * 2; // Example
+        }
+        
+        function initCardSelector() {
+            const container = document.getElementById('cardsGrid');
+            if (!container) return;
+            
+            cardSelector = new CardSelector('cardsGrid', {
+                totalCards: CONFIG.totalCards,
+                maxSelection: CONFIG.maxCards,
+                cardsPerPage: CONFIG.cardsPerPage,
+                onSelectionChange: (selectedCards) => {
+                    gameState.selectedCards = selectedCards;
+                    updateSelectionDisplay();
+                }
+            });
+        }
+        
+        function loadTakenCards() {
+            // In production, this would fetch from server
+            // For demo, mark some random cards as taken
+            const taken = [];
+            for (let i = 0; i < 50; i++) {
+                taken.push(Math.floor(Math.random() * CONFIG.totalCards) + 1);
+            }
+            gameState.takenCards = taken;
+            
+            if (cardSelector) {
+                cardSelector.setTakenCards(taken);
+            }
+            
+            updateAvailableCards();
+        }
+        
+        function updateAvailableCards() {
+            const available = CONFIG.totalCards - gameState.takenCards.length;
+            document.getElementById('availableCards').textContent = available;
+        }
+        
+        function startSelectionTimer() {
+            clearInterval(selectionTimerInterval);
+            
+            selectionTimerInterval = setInterval(() => {
+                gameState.selectionTimeLeft--;
+                updateTimerDisplay();
+                
+                if (gameState.selectionTimeLeft <= 10) {
+                    // Urgent warning
+                    document.getElementById('selectionTimer').classList.add('urgent');
+                    
+                    if (gameState.selectionTimeLeft <= 5) {
+                        // Critical warning
+                        document.getElementById('selectionTimer').classList.add('critical');
+                        showNotification(`${gameState.selectionTimeLeft} seconds left!`, 'warning');
+                    }
+                }
+                
+                if (gameState.selectionTimeLeft <= 0) {
+                    clearInterval(selectionTimerInterval);
+                    handleTimerExpired();
+                }
+            }, 1000);
+        }
+        
+        function updateTimerDisplay() {
+            const timerElement = document.getElementById('selectionTimer');
+            if (!timerElement) return;
+            
+            const minutes = Math.floor(gameState.selectionTimeLeft / 60);
+            const seconds = gameState.selectionTimeLeft % 60;
+            
+            timerElement.textContent = 
+                `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            
+            // Update progress bar
+            const progress = ((CONFIG.selectionTime - gameState.selectionTimeLeft) / CONFIG.selectionTime) * 100;
+            document.getElementById('selectionProgress').style.width = `${progress}%`;
+        }
+        
+        function updateSelectionDisplay() {
+            const selectedCount = gameState.selectedCards.length;
+            document.getElementById('cardsSelected').textContent = selectedCount;
+            
+            // Update card displays
+            for (let i = 1; i <= CONFIG.maxCards; i++) {
+                const cardDisplay = document.getElementById(`card${i}Display`);
+                const cardNumber = document.getElementById(`card${i}Number`);
+                const cardPreview = document.getElementById(`card${i}Preview`);
+                
+                if (gameState.selectedCards[i - 1]) {
+                    const cardNum = gameState.selectedCards[i - 1];
+                    cardNumber.textContent = cardNum;
+                    cardDisplay.classList.add('has-card');
+                    
+                    // Generate preview
+                    generateCardPreview(cardPreview, cardNum);
+                } else {
+                    cardNumber.textContent = '--';
+                    cardDisplay.classList.remove('has-card');
+                    cardPreview.innerHTML = '<div class="empty-preview">No card selected</div>';
+                }
+            }
+            
+            // Update confirm button
+            const confirmBtn = document.getElementById('confirmSelectionBtn');
+            if (selectedCount > 0) {
+                confirmBtn.disabled = false;
+                confirmBtn.classList.add('enabled');
+            } else {
+                confirmBtn.disabled = true;
+                confirmBtn.classList.remove('enabled');
+            }
+        }
+        
+        function generateCardPreview(container, cardNumber) {
+            if (!container) return;
+            
+            const cardNumbers = BingoBoard.generateCardNumbers(cardNumber);
+            const grid = BingoBoard.numbersToGrid(cardNumbers);
+            
+            let previewHTML = '<div class="preview-grid">';
+            for (let row = 0; row < 5; row++) {
+                for (let col = 0; col < 5; col++) {
+                    const num = grid[row][col];
+                    const isFree = num === 0;
+                    previewHTML += `
+                        <div class="preview-cell ${isFree ? 'free' : ''}">
+                            ${isFree ? 'FREE' : num}
+                        </div>
+                    `;
+                }
+            }
+            previewHTML += '</div>';
+            
+            container.innerHTML = previewHTML;
+        }
+        
+        function handleTimerExpired() {
+            if (gameState.selectedCards.length === 0 && !gameState.isConfirmed) {
+                // Auto-select random cards
+                autoSelectRandomCards();
+                showNotification('Time expired! Random cards selected for you.', 'info');
+                
+                // Auto-confirm after 2 seconds
+                setTimeout(() => {
+                    confirmSelection();
+                }, 2000);
+            } else if (!gameState.isConfirmed) {
+                // Auto-confirm with selected cards
+                confirmSelection();
+            }
+        }
+        
+        function autoSelectRandomCards() {
+            // Get available cards (not taken)
+            const allCards = Array.from({ length: CONFIG.totalCards }, (_, i) => i + 1);
+            const available = allCards.filter(card => !gameState.takenCards.includes(card));
+            
+            // Select random cards
+            const cardsToSelect = Math.min(CONFIG.maxCards, available.length);
+            gameState.selectedCards = [];
+            
+            for (let i = 0; i < cardsToSelect; i++) {
+                const randomIndex = Math.floor(Math.random() * available.length);
+                gameState.selectedCards.push(available[randomIndex]);
+                available.splice(randomIndex, 1);
+            }
+            
+            // Update UI
+            if (cardSelector) {
+                gameState.selectedCards.forEach(card => {
+                    cardSelector.selectCard(card);
+                });
+            }
+            updateSelectionDisplay();
+        }
+        
+        function confirmSelection() {
+            if (gameState.isConfirmed) return;
+            
+            if (gameState.selectedCards.length === 0) {
+                showNotification('Please select at least one card!', 'error');
+                return;
+            }
+            
+            gameState.isConfirmed = true;
+            clearInterval(selectionTimerInterval);
+            
+            // Show loading
+            showLoading('Joining game...');
+            
+            // In production, send to server
+            console.log('Confirmed cards:', gameState.selectedCards);
+            
+            // Simulate API call
+            setTimeout(() => {
+                // Store selected cards in session storage
+                sessionStorage.setItem('selectedCards', JSON.stringify(gameState.selectedCards));
+                sessionStorage.setItem('playerName', gameState.playerName);
+                sessionStorage.setItem('playerId', gameState.playerId);
+                
+                // Redirect to game page
+                window.location.href = `/game.html?gameId=${CONFIG.gameId}&price=${CONFIG.entryPrice}`;
+            }, 1500);
+        }
+        
+        function setupEventListeners() {
+            // Random selection button
+            document.getElementById('randomSelectBtn').addEventListener('click', () => {
+                autoSelectRandomCards();
+                showNotification('Random cards selected!', 'success');
+            });
+            
+            // Clear selection button
+            document.getElementById('clearSelectionBtn').addEventListener('click', () => {
+                if (gameState.isConfirmed) {
+                    showNotification('Selection already confirmed!', 'error');
+                    return;
+                }
+                
+                gameState.selectedCards = [];
+                if (cardSelector) {
+                    cardSelector.clearSelection();
+                }
+                updateSelectionDisplay();
+                showNotification('Selection cleared!', 'info');
+            });
+            
+            // Confirm selection button
+            document.getElementById('confirmSelectionBtn').addEventListener('click', confirmSelection);
+            
+            // Search card
+            document.getElementById('btnSearchCard').addEventListener('click', searchCard);
+            document.getElementById('cardSearch').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') searchCard();
+            });
+            
+            // Page navigation
+            document.getElementById('btnPrevPage').addEventListener('click', () => {
+                if (cardSelector) cardSelector.prevPage();
+            });
+            
+            document.getElementById('btnNextPage').addEventListener('click', () => {
+                if (cardSelector) cardSelector.nextPage();
+            });
+            
+            // Instructions toggle
+            document.getElementById('instructionsToggle').addEventListener('click', () => {
+                const content = document.getElementById('instructionsContent');
+                const icon = document.getElementById('instructionsToggle');
+                
+                content.classList.toggle('expanded');
+                icon.classList.toggle('fa-chevron-down');
+                icon.classList.toggle('fa-chevron-up');
+            });
+            
+            // View card buttons
+            document.querySelectorAll('.btn-view-card').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const cardIndex = parseInt(e.target.dataset.card) - 1;
+                    if (gameState.selectedCards[cardIndex]) {
+                        showCardModal(gameState.selectedCards[cardIndex]);
+                    }
+                });
+            });
+            
+            // Close modal
+            document.getElementById('btnCloseModal').addEventListener('click', () => {
+                hideCardModal();
+            });
+            
+            // Select card from modal
+            document.getElementById('btnSelectModal').addEventListener('click', () => {
+                const cardNumber = parseInt(document.getElementById('modalCardNumber').textContent.replace('#', ''));
+                if (cardNumber && cardSelector) {
+                    cardSelector.selectCard(cardNumber);
+                    hideCardModal();
+                }
+            });
+            
+            // Modal overlay click
+            document.getElementById('cardModal').addEventListener('click', (e) => {
+                if (e.target.id === 'cardModal') {
+                    hideCardModal();
+                }
+            });
+        }
+        
+        function searchCard() {
+            const input = document.getElementById('cardSearch');
+            const cardNumber = parseInt(input.value);
+            
+            if (!cardNumber || cardNumber < 1 || cardNumber > CONFIG.totalCards) {
+                showNotification('Please enter a valid card number (1-500)', 'error');
+                return;
+            }
+            
+            // In production, this would jump to the card
+            // For now, just show a message
+            showNotification(`Card #${cardNumber} selected!`, 'success');
+            
+            // Clear input
+            input.value = '';
+            
+            // If card is available, select it
+            if (!gameState.takenCards.includes(cardNumber) && cardSelector) {
+                cardSelector.selectCard(cardNumber);
+            }
+        }
+        
+        function showCardModal(cardNumber) {
+            const modal = document.getElementById('cardModal');
+            const modalNumber = document.getElementById('modalCardNumber');
+            const fullDisplay = document.getElementById('fullCardDisplay');
+            
+            modalNumber.textContent = `#${cardNumber}`;
+            
+            // Generate full card display
+            const cardNumbers = BingoBoard.generateCardNumbers(cardNumber);
+            const grid = BingoBoard.numbersToGrid(cardNumbers);
+            
+            let cardHTML = '<div class="full-bingo-grid">';
+            for (let row = 0; row < 5; row++) {
+                for (let col = 0; col < 5; col++) {
+                    const num = grid[row][col];
+                    const isFree = num === 0;
+                    const isTaken = gameState.takenCards.includes(cardNumber);
+                    const isSelected = gameState.selectedCards.includes(cardNumber);
+                    
+                    let cellClass = 'full-cell';
+                    if (isFree) cellClass += ' free';
+                    if (isTaken) cellClass += ' taken';
+                    if (isSelected) cellClass += ' selected';
+                    
+                    cardHTML += `
+                        <div class="${cellClass}">
+                            ${isFree ? 'FREE' : num}
+                        </div>
+                    `;
+                }
+            }
+            cardHTML += '</div>';
+            
+            fullDisplay.innerHTML = cardHTML;
+            modal.classList.add('active');
+            
+            // Update select button
+            const selectBtn = document.getElementById('btnSelectModal');
+            if (gameState.takenCards.includes(cardNumber)) {
+                selectBtn.disabled = true;
+                selectBtn.innerHTML = '<i class="fas fa-ban"></i> Card Taken';
+            } else if (gameState.selectedCards.includes(cardNumber)) {
+                selectBtn.disabled = true;
+                selectBtn.innerHTML = '<i class="fas fa-check"></i> Already Selected';
+            } else if (gameState.selectedCards.length >= CONFIG.maxCards) {
+                selectBtn.disabled = true;
+                selectBtn.innerHTML = '<i class="fas fa-ban"></i> Max Cards Reached';
+            } else {
+                selectBtn.disabled = false;
+                selectBtn.innerHTML = '<i class="fas fa-check"></i> Select This Card';
+            }
+        }
+        
+        function hideCardModal() {
+            document.getElementById('cardModal').classList.remove('active');
+        }
+        
+        function showLoading(message = 'Loading...') {
+            const overlay = document.getElementById('loadingOverlay');
+            const text = document.getElementById('loadingText');
+            
+            text.textContent = message;
+            overlay.classList.add('active');
+        }
+        
+        function hideLoading() {
+            document.getElementById('loadingOverlay').classList.remove('active');
+        }
+        
+        function showNotification(message, type = 'info') {
+            // Remove existing notifications
+            const existing = document.querySelectorAll('.notification');
+            existing.forEach(n => n.remove());
+            
+            // Create notification
+            const notification = document.createElement('div');
+            notification.className = `notification notification-${type}`;
+            notification.innerHTML = `
+                <div class="notification-content">
+                    <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
+                    <span>${message}</span>
+                </div>
+            `;
+            
+            document.body.appendChild(notification);
+            
+            // Show animation
+            setTimeout(() => {
+                notification.classList.add('show');
+            }, 10);
+            
+            // Auto-remove after 3 seconds
+            setTimeout(() => {
+                notification.classList.remove('show');
+                setTimeout(() => {
+                    if (notification.parentNode) {
+                        notification.parentNode.removeChild(notification);
+                    }
+                }, 300);
+            }, 3000);
+        }
+        
+        // Handle page visibility
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                console.log('Selection paused');
+            } else {
+                console.log('Selection resumed');
+            }
+        });
+        
+        // Handle before unload
+        window.addEventListener('beforeunload', (e) => {
+            if (!gameState.isConfirmed && gameState.selectionTimeLeft > 0) {
+                e.preventDefault();
+                e.returnValue = 'Are you sure you want to leave? Your selection will be lost.';
+                return e.returnValue;
+            }
+        });
+    </script>
+</body>
+</html>
