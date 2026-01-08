@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Addis Bingo - Win Real Cash Playing Bingo!</title>
+    <meta name="description" content="Play real-time Bingo with real cash prizes. Join thousands of players in Ethiopia's favorite online Bingo game.">
+    <meta name="keywords" content="Bingo, Ethiopia, Real Cash, Online Game, Win Money, Telebirr, CBE, Dashen">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="/css/index.css">
+    
+    <!-- Telegram Web App SDK -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    
+    <!-- Open Graph Meta Tags -->
+    <meta property="og:title" content="Addis Bingo - Win Real Cash">
+    <meta property="og:description" content="Play Bingo and win real cash instantly. Ethiopia's #1 online Bingo platform.">
+    <meta property="og:image" content="/images/og-image.jpg">
+    <meta property="og:url" content="https://addis-bingo.com">
+    <meta property="og:type" content="website">
+    
+    <!-- Twitter Cards -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Addis Bingo - Win Real Cash">
+    <meta name="twitter:description" content="Play Bingo and win real cash instantly.">
+    
+    <!-- Favicon -->
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    <link rel="manifest" href="/site.webmanifest">
+    
+    <style>
+        /* Preloader */
+        .preloader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #0f2027 0%, #203a43 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            transition: opacity 0.5s ease;
+        }
+        
+        .loader {
+            width: 80px;
+            height: 80px;
+            border: 5px solid rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            border-top-color: #00b4d8;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+        
+        .loader-text {
+            color: white;
+            font-size: 1.2rem;
+            font-weight: 500;
+        }
+        
+        @keyframes spin {
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* Pulse animation for CTA */
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+        
+        /* Fade-in animation */
+        .fade-in {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.8s ease, transform 0.8s ease;
+        }
+        
+        .fade-in.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body>
+    <!-- Preloader -->
+    <div class="preloader" id="preloader">
+        <div class="loader"></div>
+        <div class="loader-text">Loading Addis Bingo...</div>
+    </div>
+    
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="nav-brand">
+                <div class="logo">
+                    <i class="fas fa-dice-d20"></i>
+                    <span class="logo-text">Addis<span class="logo-highlight">Bingo</span></span>
+                </div>
+            </div>
+            
+            <div class="nav-menu">
+                <a href="#features" class="nav-link">Features</a>
+                <a href="#how-to-play" class="nav-link">How to Play</a>
+                <a href="#testimonials" class="nav-link">Winners</a>
+                <a href="#faq" class="nav-link">FAQ</a>
+            </div>
+            
+            <div class="nav-actions">
+                <button class="btn btn-outline" id="btnLogin">
+                    <i class="fas fa-sign-in-alt"></i> Login
+                </button>
+                <button class="btn btn-primary pulse" id="btnPlayNow">
+                    <i class="fas fa-play"></i> Play Now
+                </button>
+                
+                <!-- Mobile menu toggle -->
+                <button class="nav-toggle" id="navToggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>
+        </div>
+        
+        <!-- Mobile menu -->
+        <div class="mobile-menu" id="mobileMenu">
+            <a href="#features" class="mobile-link">Features</a>
+            <a href="#how-to-play" class="mobile-link">How to Play</a>
+            <a href="#testimonials" class="mobile-link">Winners</a>
+            <a href="#faq" class="mobile-link">FAQ</a>
+            <div class="mobile-actions">
+                <button class="btn btn-outline btn-block" id="btnLoginMobile">Login</button>
+                <button class="btn btn-primary btn-block" id="btnPlayNowMobile">Play Now</button>
+            </div>
+        </div>
+    </nav>
+    
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <div class="hero-content">
+                <h1 class="hero-title fade-in">
+                    <span class="hero-highlight">Win Real Cash</span><br>
+                    Playing Bingo Online!
+                </h1>
+                
+                <p class="hero-subtitle fade-in">
+                    Join thousands of players in Ethiopia's #1 real-time Bingo platform. 
+                    Easy to play, instant withdrawals, and huge prizes!
+                </p>
+                
+                <div class="hero-stats fade-in">
+                    <div class="stat">
+                        <div class="stat-number" id="totalPlayers">10,000+</div>
+                        <div class="stat-label">Active Players</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-number" id="totalWinners">2,500+</div>
+                        <div class="stat-label">Winners Today</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-number" id="totalPrizes">500K+</div>
+                        <div class="stat-label">ETB Paid Out</div>
+                    </div>
+                </div>
+                
+                <div class="hero-cta fade-in">
+                    <button class="btn btn-primary btn-lg pulse" id="heroPlayBtn">
+                        <i class="fas fa-play-circle"></i> Start Playing - It's Free!
+                    </button>
+                    <button class="btn btn-secondary btn-lg" id="heroWatchBtn">
+                        <i class="fas fa-video"></i> Watch Demo
+                    </button>
+                </div>
+                
+                <div class="hero-badges fade-in">
+                    <div class="badge">
+                        <i class="fas fa-shield-alt"></i>
+                        <span>100% Secure</span>
+                    </div>
+                    <div class="badge">
+                        <i class="fas fa-bolt"></i>
+                        <span>Instant Withdrawals</span>
+                    </div>
+                    <div class="badge">
+                        <i class="fas fa-mobile-alt"></i>
+                        <span>Mobile Friendly</span>
+                    </div>
+                    <div class="badge">
+                        <i class="fas fa-headset"></i>
+                        <span>24/7 Support</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="hero-image fade-in">
+                <div class="phone-mockup">
+                    <div class="phone-screen">
+                        <!-- Live game preview -->
+                        <div class="game-preview">
+                            <div class="preview-header">
+                                <div class="preview-title">Live Game #BINGO247</div>
+                                <div class="preview-prize">Prize: 5,000 ETB</div>
+                            </div>
+                            <div class="preview-numbers">
+                                <div class="number called">B-12</div>
+                                <div class="number">I-24</div>
+                                <div class="number called">N-38</div>
+                                <div class="number">G-51</div>
+                                <div class="number">O-67</div>
+                            </div>
+                            <div class="preview-board">
+                                <!-- Mini bingo board -->
+                                <div class="mini-grid">
+                                    <!-- Generated by JavaScript -->
+                                </div>
+                            </div>
+                            <div class="preview-players">
+                                <i class="fas fa-users"></i>
+                                <span id="livePlayers">48</span> players online
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Trust Badges -->
+    <section class="trust-section">
+        <div class="container">
+            <div class="trust-title">
+                Trusted Payment Methods
+            </div>
+            <div class="trust-badges">
+                <div class="trust-badge">
+                    <i class="fas fa-university"></i>
+                    <span>CBE Bank</span>
+                </div>
+                <div class="trust-badge">
+                    <i class="fas fa-mobile-alt"></i>
+                    <span>Telebirr</span>
+                </div>
+                <div class="trust-badge">
+                    <i class="fas fa-landmark"></i>
+                    <span>Dashen Bank</span>
+                </div>
+                <div class="trust-badge">
+                    <i class="fas fa-shield-alt"></i>
+                    <span>Secure SSL</span>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Features Section -->
+    <section class="features-section" id="features">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Why Players Love Addis Bingo</h2>
+                <p class="section-subtitle">Experience the best online Bingo platform in Ethiopia</p>
+            </div>
+            
+            <div class="features-grid">
+                <div class="feature-card fade-in">
+                    <div class="feature-icon">
+                        <i class="fas fa-bolt"></i>
+                    </div>
+                    <h3 class="feature-title">Real-time Gameplay</h3>
+                    <p class="feature-description">
+                        Play with hundreds of players simultaneously. Numbers are called in real-time for everyone.
+                    </p>
+                </div>
+                
+                <div class="feature-card fade-in">
+                    <div class="feature-icon">
+                        <i class="fas fa-money-bill-wave"></i>
+                    </div>
+                    <h3 class="feature-title">Instant Withdrawals</h3>
+                    <p class="feature-description">
+                        Withdraw your winnings directly to Telebirr or bank account within 24 hours.
+                    </p>
+                </div>
+                
+                <div class="feature-card fade-in">
+                    <div class="feature-icon">
+                        <i class="fas fa-gift"></i>
+                    </div>
+                    <h3 class="feature-title">Referral Bonus</h3>
+                    <p class="feature-description">
+                        Earn 100 ETB for each friend who joins and plays. No limit on referrals!
+                    </p>
+                </div>
+                
+                <div class="feature-card fade-in">
+                    <div class="feature-icon">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                    <h3 class="feature-title">100% Fair Play</h3>
+                    <p class="feature-description">
+                        Verified random number generation. All games are transparent and provably fair.
+                    </p>
+                </div>
+                
+                <div class="feature-card fade-in">
+                    <div class="feature-icon">
+                        <i class="fas fa-headset"></i>
+                    </div>
+                    <h3 class="feature-title">24/7 Support</h3>
+                    <p class="feature-description">
+                        Get help anytime via Telegram. Our support team responds within minutes.
+                    </p>
+                </div>
+                
+                <div class="feature-card fade-in">
+                    <div class="feature-icon">
+                        <i class="fas fa-mobile-alt"></i>
+                    </div>
+                    <h3 class="feature-title">Mobile First</h3>
+                    <p class="feature-description">
+                        Play on any device - mobile, tablet, or desktop. No app download required.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- How to Play -->
+    <section class="how-to-play" id="how-to-play">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">How to Play & Win</h2>
+                <p class="section-subtitle">Get started in 3 easy steps</p>
+            </div>
+            
+            <div class="steps">
+                <div class="step fade-in">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <h3>Register & Deposit</h3>
+                        <p>Sign up with Telegram, add money via CBE, Telebirr, or Dashen Bank</p>
+                        <div class="step-methods">
+                            <span class="method"><i class="fas fa-university"></i> CBE</span>
+                            <span class="method"><i class="fas fa-mobile-alt"></i> Telebirr</span>
+                            <span class="method"><i class="fas fa-landmark"></i> Dashen</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="step fade-in">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <h3>Choose Your Cards</h3>
+                        <p>Select 1-2 unique Bingo cards from 500 available options</p>
+                        <div class="step-visual">
+                            <div class="card-visual">
+                                <div class="visual-grid">
+                                    <!-- Mini card visual -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="step fade-in">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <h3>Play & Win Cash!</h3>
+                        <p>Mark numbers as they're called. Complete a line to win instantly!</p>
+                        <div class="step-prize">
+                            <div class="prize-amount">Up to 10,000 ETB</div>
+                            <div class="prize-label">Per Game</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="cta-center fade-in">
+                <button class="btn btn-primary btn-xl" id="ctaPlay">
+                    <i class="fas fa-play"></i> Start Playing Now
+                </button>
+                <p class="cta-note">No registration required to try demo</p>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Live Game Stats -->
+    <section class="live-stats">
+        <div class="container">
+            <div class="stats-header">
+                <h2><i class="fas fa-chart-line"></i> Live Game Statistics</h2>
+                <div class="live-indicator">
+                    <span class="live-dot"></span> LIVE
+                </div>
+            </div>
+            
+            <div class="stats-grid">
+                <div class="stat-card-large fade-in">
+                    <div class="stat-large-value" id="activeGames">12</div>
+                    <div class="stat-large-label">Active Games Now</div>
+                    <div class="stat-trend up">
+                        <i class="fas fa-arrow-up"></i> 3 new games
+                    </div>
+                </div>
+                
+                <div class="stat-card-large fade-in">
+                    <div class="stat-large-value" id="totalOnline">248</div>
+                    <div class="stat-large-label">Players Online</div>
+                    <div class="stat-trend up">
+                        <i class="fas fa-arrow-up"></i> 15 new players
+                    </div>
+                </div>
+                
+                <div class="stat-card-large fade-in">
+                    <div class="stat-large-value">5,000</div>
+                    <div class="stat-large-label">ETB Prize Pool</div>
+                    <div class="stat-trend up">
+                        <i class="fas fa-arrow-up"></i> Growing
+                    </div>
+                </div>
+                
+                <div class="stat-card-large fade-in">
+                    <div class="stat-large-value" id="nextGame">2:30</div>
+                    <div class="stat-large-label">Next Game In</div>
+                    <div class="countdown-timer" id="gameCountdown">
+                        02:30
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Testimonials -->
+    <section class="testimonials" id="testimonials">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Recent Winners</h2>
+                <p class="section-subtitle">See what our players are winning</p>
+            </div>
+            
+            <div class="testimonials-grid">
+                <div class="testimonial-card fade-in">
+                    <div class="testimonial-header">
+                        <div class="winner-avatar">A</div>
+                        <div class="winner-info">
+                            <h4>Alemayehu</h4>
+                            <p>From Addis Ababa</p>
+                        </div>
+                    </div>
+                    <div class="testimonial-body">
+                        <p>"I won 2,500 ETB on my first game! Withdrawal to Telebirr was instant. Amazing platform!"</p>
+                    </div>
+                    <div class="testimonial-footer">
+                        <div class="win-amount">
+                            <i class="fas fa-trophy"></i>
+                            2,500 ETB
+                        </div>
+                        <div class="win-time">2 hours ago</div>
+                    </div>
+                </div>
+                
+                <div class="testimonial-card fade-in">
+                    <div class="testimonial-header">
+                        <div class="winner-avatar">M</div>
+                        <div class="winner-info">
+                            <h4>Meron</h4>
+                            <p>From Bahir Dar</p>
+                        </div>
+                    </div>
+                    <div class="testimonial-body">
+                        <p>"Made 5,000 ETB in one week! The referral bonus really adds up. Thank you Addis Bingo!"</p>
+                    </div>
+                    <div class="testimonial-footer">
+                        <div class="win-amount">
+                            <i class="fas fa-trophy"></i>
+                            5,000 ETB
+                        </div>
+                        <div class="win-time">Yesterday</div>
+                    </div>
+                </div>
+                
+                <div class="testimonial-card fade-in">
+                    <div class="testimonial-header">
+                        <div class="winner-avatar">S</div>
+                        <div class="winner-info">
+                            <h4>Samuel</h4>
+                            <p>From Dire Dawa</p>
+                        </div>
+                    </div>
+                    <div class="testimonial-body">
+                        <p>"Perfect for passing time and earning money. Customer support is very helpful when needed."</p>
+                    </div>
+                    <div class="testimonial-footer">
+                        <div class="win-amount">
+                            <i class="fas fa-trophy"></i>
+                            1,200 ETB
+                        </div>
+                        <div class="win-time">Today</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- FAQ Section -->
+    <section class="faq-section" id="faq">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Frequently Asked Questions</h2>
+                <p class="section-subtitle">Everything you need to know</p>
+            </div>
+            
+            <div class="faq-grid">
+                <div class="faq-item fade-in">
+                    <div class="faq-question">
+                        <h3>How do I deposit money?</h3>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="faq-answer">
+                        <p>You can deposit via CBE Bank, Telebirr, or Dashen Bank. After registering, go to Deposit section for account details.</p>
+                    </div>
+                </div>
+                
+                <div class="faq-item fade-in">
+                    <div class="faq-question">
+                        <h3>How quickly can I withdraw my winnings?</h3>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Withdrawals are processed within 24 hours. Telebirr withdrawals are often instant during business hours.</p>
+                    </div>
+                </div>
+                
+                <div class="faq-item fade-in">
+                    <div class="faq-question">
+                        <h3>Is there a minimum withdrawal amount?</h3>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Yes, the minimum withdrawal is 100 ETB. There's no maximum limit for verified accounts.</p>
+                    </div>
+                </div>
+                
+                <div class="faq-item fade-in">
+                    <div class="faq-question">
+                        <h3>How do I earn referral bonus?</h3>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Share your unique referral link. When a friend joins and plays their first game, you get 100 ETB instantly.</p>
+                    </div>
+                </div>
+                
+                <div class="faq-item fade-in">
+                    <div class="faq-question">
+                        <h3>Is the game fair?</h3>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Yes! We use provably fair random number generation. All games are transparent and can be verified.</p>
+                    </div>
+                </div>
+                
+                <div class="faq-item fade-in">
+                    <div class="faq-question">
+                        <h3>What happens if I lose connection during a game?</h3>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Your cards remain active. Reconnect within 5 minutes to continue playing. Numbers are saved.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Final CTA -->
+    <section class="final-cta">
+        <div class="container">
+            <div class="cta-content">
+                <h2 class="cta-title">Ready to Win Real Cash?</h2>
+                <p class="cta-subtitle">Join thousands of winners today. No experience needed!</p>
+                
+                <div class="cta-buttons">
+                    <button class="btn btn-primary btn-xxl pulse" id="finalPlayBtn">
+                        <i class="fas fa-play-circle"></i> Play Now & Start Winning
+                    </button>
+                    <button class="btn btn-secondary btn-xxl" id="finalDemoBtn">
+                        <i class="fas fa-eye"></i> Try Free Demo
+                    </button>
+                </div>
+                
+                <div class="cta-features">
+                    <div class="feature">
+                        <i class="fas fa-check-circle"></i>
+                        <span>No registration required for demo</span>
+                    </div>
+                    <div class="feature">
+                        <i class="fas fa-check-circle"></i>
+                        <span>First deposit bonus: 100 ETB free</span>
+                    </div>
+                    <div class="feature">
+                        <i class="fas fa-check-circle"></i>
+                        <span>Play on any device</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-col">
+                    <div class="footer-logo">
+                        <i class="fas fa-dice-d20"></i>
+                        <span class="logo-text">Addis<span class="logo-highlight">Bingo</span></span>
+                    </div>
+                    <p class="footer-description">
+                        Ethiopia's #1 real-time Bingo platform. Play, win, and withdraw real cash instantly.
+                    </p>
+                    <div class="social-links">
+                        <a href="#" class="social-link"><i class="fab fa-telegram"></i></a>
+                        <a href="#" class="social-link"><i class="fab fa-facebook"></i></a>
+                        <a href="#" class="social-link"><i class="fab fa-twitter"></i></a>
+                        <a href="#" class="social-link"><i class="fab fa-instagram"></i></a>
+                    </div>
+                </div>
+                
+                <div class="footer-col">
+                    <h4 class="footer-title">Quick Links</h4>
+                    <a href="/game.html" class="footer-link">Play Game</a>
+                    <a href="#how-to-play" class="footer-link">How to Play</a>
+                    <a href="#testimonials" class="footer-link">Winners</a>
+                    <a href="#faq" class="footer-link">FAQ</a>
+                </div>
+                
+                <div class="footer-col">
+                    <h4 class="footer-title">Legal</h4>
+                    <a href="#" class="footer-link">Terms of Service</a>
+                    <a href="#" class="footer-link">Privacy Policy</a>
+                    <a href="#" class="footer-link">Responsible Gaming</a>
+                    <a href="#" class="footer-link">Contact Support</a>
+                </div>
+                
+                <div class="footer-col">
+                    <h4 class="footer-title">Contact Us</h4>
+                    <div class="contact-info">
+                        <div class="contact-item">
+                            <i class="fas fa-headset"></i>
+                            <span>Telegram: @addis_bingo_support</span>
+                        </div>
+                        <div class="contact-item">
+                            <i class="fas fa-envelope"></i>
+                            <span>support@addis-bingo.com</span>
+                        </div>
+                        <div class="contact-item">
+                            <i class="fas fa-clock"></i>
+                            <span>24/7 Support</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="footer-bottom">
+                <div class="copyright">
+                    © 2024 Addis Bingo. All rights reserved.
+                </div>
+                <div class="footer-disclaimer">
+                    <p>Addis Bingo is for entertainment purposes. Players must be 18+. Play responsibly.</p>
+                </div>
+                <div class="payment-methods">
+                    <i class="fas fa-university" title="CBE Bank"></i>
+                    <i class="fas fa-mobile-alt" title="Telebirr"></i>
+                    <i class="fas fa-landmark" title="Dashen Bank"></i>
+                    <i class="fas fa-shield-alt" title="SSL Secure"></i>
+                </div>
+            </div>
+        </div>
+    </footer>
+    
+    <!-- JavaScript -->
+    <script src="/js/index.js"></script>
+    
+    <script>
+        // Preloader
+        window.addEventListener('load', function() {
+            setTimeout(function() {
+                document.getElementById('preloader').style.opacity = '0';
+                setTimeout(function() {
+                    document.getElementById('preloader').style.display = 'none';
+                }, 500);
+            }, 1000);
+        });
+        
+        // Fade-in animation on scroll
+        document.addEventListener('DOMContentLoaded', function() {
+            const fadeElements = document.querySelectorAll('.fade-in');
+            
+            const fadeInOnScroll = function() {
+                fadeElements.forEach(function(element) {
+                    if (element.getBoundingClientRect().top < window.innerHeight - 100) {
+                        element.classList.add('visible');
+                    }
+                });
+            };
+            
+            fadeInOnScroll(); // Check on load
+            window.addEventListener('scroll', fadeInOnScroll);
+        });
+    </script>
+</body>
+</html>

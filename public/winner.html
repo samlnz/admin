@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>BINGO WINNER!</title>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="/css/winner.css">
+    
+    <!-- Telegram Web App SDK -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    
+    <style>
+        /* Additional styles */
+        .no-select {
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+        
+        /* Loading overlay */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            color: white;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .loading-trophy {
+            font-size: 4rem;
+            color: #ffd700;
+            margin-bottom: 20px;
+            animation: trophySpin 2s ease-in-out infinite;
+        }
+        
+        .loading-text {
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+            color: #4cc9f0;
+        }
+        
+        .loading-subtext {
+            font-size: 1rem;
+            color: #90e0ef;
+            opacity: 0.8;
+        }
+        
+        @keyframes trophySpin {
+            0% { transform: rotate(0deg); }
+            25% { transform: rotate(10deg); }
+            75% { transform: rotate(-10deg); }
+            100% { transform: rotate(0deg); }
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .winner-container {
+                padding: 15px;
+                margin: 10px;
+            }
+            
+            .winner-trophy {
+                font-size: 3rem;
+                width: 100px;
+                height: 100px;
+            }
+            
+            .winner-title {
+                font-size: 1.8rem;
+            }
+            
+            .winner-stats {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .winning-card-grid {
+                grid-template-columns: repeat(5, 40px);
+                gap: 3px;
+            }
+            
+            .card-cell {
+                width: 40px;
+                height: 40px;
+                font-size: 0.8rem;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .winner-stats {
+                grid-template-columns: 1fr;
+            }
+            
+            .winner-actions {
+                flex-direction: column;
+            }
+            
+            .btn-winner {
+                width: 100%;
+                margin-bottom: 10px;
+            }
+            
+            .winning-card-grid {
+                grid-template-columns: repeat(5, 35px);
+            }
+            
+            .card-cell {
+                width: 35px;
+                height: 35px;
+                font-size: 0.7rem;
+            }
+        }
+    </style>
+</head>
+<body class="no-select">
+    <!-- Loading screen -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-trophy">
+            <i class="fas fa-trophy"></i>
+        </div>
+        <div class="loading-text" id="loadingText">Preparing Your Victory!</div>
+        <div class="loading-subtext">Loading winner data...</div>
+    </div>
+    
+    <!-- Main winner container -->
+    <div class="winner-container" id="winnerContainer" style="display: none;">
+        <!-- Confetti canvas -->
+        <canvas id="confettiCanvas"></canvas>
+        
+        <!-- Winner header -->
+        <div class="winner-header">
+            <div class="winner-trophy animate-trophy">
+                <i class="fas fa-trophy"></i>
+            </div>
+            <h1 class="winner-title">BINGO VICTORY!</h1>
+            <p class="winner-subtitle">Congratulations on Your Win!</p>
+        </div>
+        
+        <!-- Player info -->
+        <div class="player-info-section">
+            <div class="player-display">
+                <div class="player-avatar-large" id="playerAvatar">P</div>
+                <div class="player-details">
+                    <h2 id="playerName">Player</h2>
+                    <p class="player-id">ID: <span id="playerId">0000</span></p>
+                </div>
+            </div>
+            
+            <!-- Stats section -->
+            <div class="stats-section">
+                <div class="stat-box">
+                    <div class="stat-value" id="winningCard">--</div>
+                    <div class="stat-label">Winning Card</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value" id="gameTime">00:00</div>
+                    <div class="stat-label">Game Time</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value" id="numbersCalled">0</div>
+                    <div class="stat-label">Numbers Called</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Winning pattern -->
+        <div class="winning-pattern-section">
+            <h3><i class="fas fa-star"></i> Winning Pattern</h3>
+            <div class="pattern-display" id="patternDisplay">
+                <span class="pattern-name" id="patternName">Row 1</span>
+                <div class="pattern-badge" id="patternBadge">
+                    <i class="fas fa-medal"></i> VERIFIED WIN
+                </div>
+            </div>
+        </div>
+        
+        <!-- Winning card display -->
+        <div class="winning-card-section">
+            <h3><i class="fas fa-dice"></i> Winning Card Details</h3>
+            <div class="winning-card-display">
+                <div class="card-header">
+                    <span class="card-title">Card #<span id="cardNumber">--</span></span>
+                    <span class="card-type">(Fixed Pattern)</span>
+                </div>
+                <div class="winning-card-grid" id="winningCardGrid">
+                    <!-- Card grid will be generated by JavaScript -->
+                </div>
+                <div class="winning-cells-info">
+                    <i class="fas fa-check-circle"></i>
+                    <span id="winningCellsCount">5</span> cells completed for victory
+                </div>
+            </div>
+        </div>
+        
+        <!-- Prize information -->
+        <div class="prize-section" id="prizeSection">
+            <h3><i class="fas fa-gift"></i> Prize Information</h3>
+            <div class="prize-display">
+                <div class="prize-amount" id="prizeAmount">ETB 0.00</div>
+                <div class="prize-details">
+                    <div class="prize-detail">
+                        <span class="detail-label">Entry Fee:</span>
+                        <span class="detail-value" id="entryFee">ETB 0.00</span>
+                    </div>
+                    <div class="prize-detail">
+                        <span class="detail-label">Players:</span>
+                        <span class="detail-value" id="totalPlayers">0</span>
+                    </div>
+                    <div class="prize-detail">
+                        <span class="detail-label">Prize Pool:</span>
+                        <span class="detail-value" id="prizePool">ETB 0.00</span>
+                    </div>
+                    <div class="prize-detail">
+                        <span class="detail-label">Commission (10%):</span>
+                        <span class="detail-value" id="commission">ETB 0.00</span>
+                    </div>
+                </div>
+                <div class="prize-note">
+                    <i class="fas fa-info-circle"></i>
+                    Prize will be credited to your balance automatically
+                </div>
+            </div>
+        </div>
+        
+        <!-- Game summary -->
+        <div class="game-summary">
+            <h3><i class="fas fa-clipboard-list"></i> Game Summary</h3>
+            <div class="summary-content">
+                <div class="summary-item">
+                    <i class="fas fa-calendar"></i>
+                    <div class="summary-text">
+                        <div class="summary-label">Win Date & Time</div>
+                        <div class="summary-value" id="winDateTime">--</div>
+                    </div>
+                </div>
+                <div class="summary-item">
+                    <i class="fas fa-bolt"></i>
+                    <div class="summary-text">
+                        <div class="summary-label">Win Speed</div>
+                        <div class="summary-value" id="winSpeed">--</div>
+                    </div>
+                </div>
+                <div class="summary-item">
+                    <i class="fas fa-chart-line"></i>
+                    <div class="summary-text">
+                        <div class="summary-label">Your Win Rate</div>
+                        <div class="summary-value" id="winRate">--%</div>
+                    </div>
+                </div>
+                <div class="summary-item">
+                    <i class="fas fa-history"></i>
+                    <div class="summary-text">
+                        <div class="summary-label">Next Game In</div>
+                        <div class="summary-value" id="nextGameTimer">--</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Action buttons -->
+        <div class="winner-actions">
+            <button class="btn-winner btn-play-again" id="btnPlayAgain">
+                <i class="fas fa-redo"></i> Play Again
+            </button>
+            <button class="btn-winner btn-share" id="btnShare">
+                <i class="fas fa-share-alt"></i> Share Victory
+            </button>
+            <button class="btn-winner btn-home" id="btnHome">
+                <i class="fas fa-home"></i> Back to Home
+            </button>
+        </div>
+        
+        <!-- Countdown timer -->
+        <div class="countdown-message" id="countdownMessage">
+            <i class="fas fa-hourglass-half"></i>
+            Returning to game selection in <span id="countdownNumber">10</span> seconds
+        </div>
+    </div>
+    
+    <!-- Audio elements -->
+    <audio id="winnerAudio" preload="auto">
+        <source src="/audio/bingo-win.mp3" type="audio/mpeg">
+    </audio>
+    
+    <audio id="confettiAudio" preload="auto">
+        <source src="/audio/confetti.mp3" type="
